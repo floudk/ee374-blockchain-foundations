@@ -1,1 +1,3 @@
-# ee374-blockchain-foundations
+# EE374: Blockchain Foundations
+
+Stanford University Course: [homepage](https://ee374.stanford.edu/)
