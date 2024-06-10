@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@types/node": "^20.14.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
