@@ -6,9 +6,9 @@
     "build": "tsc",
     "start": "node dist/main.js"
   },
-  "type": "module",
   "dependencies": {
     "js-yaml": "^4.1.0",
+    "json-canonicalize": "^1.0.6",
     "winston": "^3.13.0"
   }
 }

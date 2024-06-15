@@ -2,6 +2,7 @@
 
 HOST_FILE="hosts.yaml"
 LOCALHOST="127.0.0.1"
+INDEX_FILE="src/index.js"
 # read hosts list from file
 # hosts:
 #   - name: "host1"
@@ -19,10 +20,12 @@ fi
 # clear log files if exists
 rm -f $LOG_DIR/*
 
-DIST="dist"
-rm -r $DIST/*
-npm run build
+# DIST="dist"
+# rm -r $DIST/*
+# npm run build
 
+# kill all running processes
+pkill -f $INDEX_FILE
 
 # read hosts list from file
 while IFS= read -r line
@@ -40,7 +43,8 @@ do
       kill -9 $(lsof -t -i:$port)
     fi
 
-    npm run start $host $LOCALHOST $port &
+    npx tsx $INDEX_FILE
+ $host $LOCALHOST $port &
   fi
     
 done < "$HOST_FILE"
