@@ -32,17 +32,3 @@ export function decodeFromCanonicalizeJson(data: string): Message {
         throw error;
     }
 }
-
-
-class NonSpanningMessageDecoder {
-
-}
-
-class SpanningMessageDecoder {
-
-}
-
-class AdaptiveMessageDecoder {
-    // This class is used to decode messages from the network
-    // since the message may span multiple packets, and one packet may contain multiple messages
-}

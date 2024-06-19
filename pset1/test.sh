@@ -43,8 +43,7 @@ do
       kill -9 $(lsof -t -i:$port)
     fi
 
-    npx tsx $INDEX_FILE
- $host $LOCALHOST $port &
+    npx tsx $INDEX_FILE $host $LOCALHOST $port &
   fi
     
 done < "$HOST_FILE"

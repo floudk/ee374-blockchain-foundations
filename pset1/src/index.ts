@@ -1,7 +1,8 @@
 import * as winston from 'winston';
 import {checkPortValid} from './utils/connection';
 import { readHostLists } from './utils/config';
-import { Network } from './network';
+import { TcpClient } from './network/client';
+import { TcpServer } from './network/server';
 import path from 'path';
 
 import { fileURLToPath } from 'url';
@@ -45,20 +46,16 @@ for (const host of hostLists){
 }
 logger.info('Host lists: '+ host_str)
 
-// check if the port number is valid
-checkPortValid(port);
 
-// if one of the arguments is missing, print an error message and exit
+// create a server
+const server = new TcpServer(port, nodeName, logger);
 
-const network = new Network(hostName, port, nodeName, logger);
-
-logger.info("create listen server in " + port)
 
 // connect to hosts after 2 seconds to ensure all servers are up
 setTimeout(() => {
     for (const host of hostLists){
         const [hostName, port] = host.split(':');
-        network.connect(hostName, parseInt(port));
+        const client = new TcpClient(hostName, parseInt(port), nodeName, logger);
     }
 }, 1000);
 
