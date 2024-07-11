@@ -46,7 +46,8 @@ function normalConnection() {
     // send hello message
     const message = {
         type: 'hello',
-        nodeName: 'test'
+        version: '0.1',
+        agent: 'test'
     };
     client.write(canonicalize(message) + '\n');
 

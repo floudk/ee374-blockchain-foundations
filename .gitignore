@@ -68,3 +68,5 @@ package-lock.json
 dist
 *.log
 
+
+test/*.js

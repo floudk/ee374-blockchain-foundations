@@ -1,6 +1,6 @@
 import * as net from 'net';
 import * as winston from 'winston';
-import { canonicalize } from 'json-canonicalize';
+import * as msg from './message';
 
 class TcpClient {
     private client: net.Socket;
@@ -20,11 +20,9 @@ class TcpClient {
 
     private onConnect(): void {
         this.logger.info(`Connected to ${this.host}:${this.port}`);
-        const helloMessage = {
-            type: 'hello',
-            nodeName: this.nodeName
-        };
-        this.client.write(canonicalize(helloMessage) + '\n');
+        const helloMessage = msg.createHelloMessage(this.nodeName);
+
+        this.client.write(helloMessage + '\n');
     }
 
 
@@ -40,11 +38,11 @@ class TcpClient {
             const rawMessage = this.buffer.substring(0, boundary);
             this.buffer = this.buffer.substring(boundary + 1);
             if (this.isValidJson(rawMessage)) {
-                const message = JSON.parse(rawMessage) as Message;
+                const message = JSON.parse(rawMessage);
                 this.logger.info(`Received message: ${JSON.stringify(message, null, 2)}`);
                 this.handleMessage(message);
             } else {
-                this.handleError('INVALID_FORMAT');
+                this.handleError('INVALID_FORMAT', "Invalid json format")
             }
             boundary = this.buffer.indexOf('\n');
         }
@@ -59,8 +57,14 @@ class TcpClient {
         }
     }
 
-    private handleMessage(socket: net.Socket, message: any): void {
+    private handleMessage(jsonMsg : JSON): void{
         // process message
+        console.log('handleMessage:', jsonMsg);
+    }
+
+    private handleError(error: string, desc:string): void {
+        const errorMsg = msg.createErrorMessage(error,desc);
+        
     }
 
     private onEnd(): void {

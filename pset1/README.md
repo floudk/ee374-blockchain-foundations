@@ -4,7 +4,6 @@ Use `TypeScript` to implement a simple `Marabu` node, and exchange a 'hello' mes
 
 Since auto-grade system can not be accessed from not in-class students, `test.sh` may be used to test the implementation. However, the test script written by myself can not be guaranteed to be correct.
 
-
 - [x] Decide what programming language you will use: TypeScript as being recommended.
 - [x] Find a nice name for the node.
 
@@ -21,4 +20,14 @@ Since auto-grade system can not be accessed from not in-class students, `test.sh
 message with the specified format.
 
 - [x] If a connected node sends any other message of a valid format prior to the hello message, you must send an "INVALID_HANDSHAKE" error message to the node and then close the connection with that node.
-    
+
+# Peer Discovery
+
+- [x] Hard-code a list of bootstrapping peers identified by their IP addresses
+- [ ] Store a list of discovered peers (including the bootstrapping peers above) locally. The list should survive reboots.
+- [ ] On loading the Marabu node, connect to at least one of your discovered peers.
+- [ ] Upon connection with any peer (initiated either by your node or the peer), send a
+"getpeers" message immediately after the "hello" message.
+- [ ] On receiving a "peers" message from a connected peer, update your list of discovered
+peers.
+- [ ] Optional: Devise a policy to decide how many and which peers to connect to.

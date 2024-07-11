@@ -1,28 +1,28 @@
 import { canonicalize } from 'json-canonicalize';
 
-export interface HelloMessage {
-    type: 'hello';
-    nodeName: string;
+interface Message{
+    type: string;
+    [key: string]: any;
 }
 
-export interface ErrorMessage {
-    type: 'error';
-    sendNode: string;
-    error: string;
-}
-
-export interface TestMessage {
-    type: 'test';
-    test: string;
-    data: string;
-}
-
-export type Message = HelloMessage | ErrorMessage;
-
-
-export function encodeToCanonicalizeJson(msg:Message): string {
+export function createHelloMessage(agent: string): string {
+    var msg: Message = {
+        type: 'hello',
+        version: '1.0',
+        agent
+    };
     return canonicalize(msg)
 }
+
+export function createErrorMessage(name: string, description: string): string {
+    var msg: Message = {
+        type: 'error',
+        name,
+        description
+    };
+    return canonicalize(msg)
+}
+
 
 export function decodeFromCanonicalizeJson(data: string): Message {
     try {

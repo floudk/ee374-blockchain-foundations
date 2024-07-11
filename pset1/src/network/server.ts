@@ -1,7 +1,9 @@
 import * as net from 'net';
-import { canonicalize } from 'json-canonicalize';
 
-class TcpServer{
+import * as winston from 'winston';
+import * as msg from './message';
+
+class TcpServer {
     private server: net.Server;
 
     private timeout: NodeJS.Timeout | null = null;
@@ -14,7 +16,7 @@ class TcpServer{
         private nodeName: string,
         private logger: winston.Logger) {
         this.server = net.createServer((socket) => this.handleConnection(socket));
-        this.server.on('error', (err) => this.handleError(err));
+        this.server.on('error', (err) => this.onError(err));
 
         this.connectionState = new Map<net.Socket, boolean>();
 
@@ -54,12 +56,12 @@ class TcpServer{
             const rawMessage = buffer.substring(0, boundary);
             buffer = buffer.substring(boundary + 1);
             if (this.isValidJson(rawMessage)) {
-                const message = JSON.parse(rawMessage) as Message;
+                const message = JSON.parse(rawMessage);
                 // this.logger.info(`Received message: ${JSON.stringify(message, null, 2)}`);
                 this.handleMessage(socket, message);
             } else {
                 this.logger.info('handle invalid message:' + JSON.stringify(rawMessage));
-                this.handleError(socket, 'INVALID_FORMAT');
+                this.handleError(socket, 'INVALID_FORMAT', "Invalid json format")
             }
             boundary = buffer.indexOf('\n');
         }
@@ -75,10 +77,10 @@ class TcpServer{
         }
     }
 
-    private handleMessage(socket: net.Socket, message: any): void {
+    private handleMessage(socket: net.Socket,  message: any): void {
 
         if (!this.connectionState.get(socket) && message.type !== 'hello') {
-            this.handleError(socket, 'INVALID_HANDSHAKE');
+            this.handleError(socket, 'INVALID_HANDSHAKE', "first message is not a hello message")
             socket.end();
             return;
         }
@@ -88,20 +90,20 @@ class TcpServer{
             this.logger.info('Received hello message from ' + message.nodeName);
             return;
         }
-        
+
         // process other messages
 
     }
-    private handleError(socket: net.Socket, error: string): void {
-        const errorMessage = `{"error": "${error}"}`;
+    private handleError(socket: net.Socket, error: string, description: string) {
+        const errorMessage = msg.createErrorMessage(error, description);
         this.logger.error('sending error message to ' + socket.remoteAddress + ':' + socket.remotePort + ': ' + errorMessage);
         socket.write(errorMessage + '\n');
     }
-    
+
 
     private setTimeout() {
         this.timeout = setTimeout(() => {
-            this.logger.info('No connections within ' + this.timeoutDuration/1000 + ' seconds, closing server');
+            this.logger.info('No connections within ' + this.timeoutDuration / 1000 + ' seconds, closing server');
             this.server.close();
         }, this.timeoutDuration);
     }
@@ -111,6 +113,9 @@ class TcpServer{
             clearTimeout(this.timeout);
             this.timeout = null;
         }
+    }
+    private onError(err: Error): void {
+        this.logger.error(`Connection error: ${err.message}`);
     }
 }
 
