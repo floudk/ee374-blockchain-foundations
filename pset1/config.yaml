@@ -1,0 +1,12 @@
+peerfile: "data/peers.json"
+logdir: "logs"
+
+agent:
+  name: "agent1"
+  version: "0.0.1"
+  port: 18000
+
+bootstraps:
+  - name: "bootstrap1"
+    ip: "127.0.0.1"
+    port: 19000

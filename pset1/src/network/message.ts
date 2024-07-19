@@ -1,24 +1,16 @@
 import { canonicalize } from 'json-canonicalize';
+import { INVALID_FORMAT } from '../error';
 
 interface Message{
     type: string;
     [key: string]: any;
 }
 
-export function createHelloMessage(agent: string): string {
-    var msg: Message = {
-        type: 'hello',
-        version: '1.0',
-        agent
-    };
-    return canonicalize(msg)
-}
 
-export function createErrorMessage(name: string, description: string): string {
+export function createMessage(type: string, data: any): string {
     var msg: Message = {
-        type: 'error',
-        name,
-        description
+        type,
+        ...data
     };
     return canonicalize(msg)
 }
@@ -26,9 +18,9 @@ export function createErrorMessage(name: string, description: string): string {
 
 export function decodeFromCanonicalizeJson(data: string): Message {
     try {
+        // console.log('Decoding:', data);
         return JSON.parse(data) as Message;
     } catch (error) {
-        console.error('Error parsing JSON:', error);
-        throw error;
+        throw new INVALID_FORMAT('Invalid JSON');
     }
 }
