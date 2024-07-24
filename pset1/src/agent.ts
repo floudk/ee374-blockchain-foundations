@@ -76,7 +76,8 @@ export class Agent {
 
 
     private onData(data: Buffer, socket: net.Socket) {
-        this.logger.info(`Received data: ${data.toString()} from ${socket.remoteAddress}:${socket.remotePort}`);
+        // log but remove the new line character
+        this.logger.info(`Received data: ${data.toString().replace('\n', '')} from ${socket.remoteAddress}:${socket.remotePort}`);
         this.receivedBuffer.set(socket, this.receivedBuffer.get(socket) + data.toString());
         this.processPackets(socket);
     }
@@ -90,6 +91,13 @@ export class Agent {
         console.log('Error: ' + err.message);
     }
 
+    private disconnect(socket: net.Socket) {
+        this.logger.info(`Disconnecting from ${socket.remoteAddress}:${socket.remotePort}`);
+        socket.end();
+        this.connectingSockets.delete(socket);
+        this.receivedBuffer.delete(socket);
+    }
+
     private onLocalError(socket: net.Socket, e: Error) {
         this.logger.error('Local error: ' + e.message);
         let errorMsg: string;
@@ -97,10 +105,17 @@ export class Agent {
 
         }else if (e instanceof err.INVALID_HANDSHAKE) {
             errorMsg = msg.createMessage('error', {name : "INVALID_HANDSHAKE", description: e.message});
+            socket.write(errorMsg + '\n');
+            this.disconnect(socket);
         }else if (e instanceof err.INVALID_FORMAT) {
             errorMsg = msg.createMessage('error', {name : "INVALID_FORMAT", description: e.message});
+            socket.write(errorMsg + '\n');
+            this.disconnect(socket);
+        }else if (e instanceof err.MISMATCHED_VERSION) {
+            // disconnect the socket
+            this.disconnect(socket);
         }
-        socket.write(errorMsg + '\n');
+        
     }
 
     // ------------------------------------------------------------------------
@@ -133,7 +148,7 @@ export class Agent {
         this.logger.info(`Processing handshake message: ${message.type} from ${socket.remoteAddress}:${socket.remotePort} with state ${currentState}`);
 
         if (currentState === 1 && message.type === 'hello') {
-            this.initialingSockets.set(socket, 2);
+            this.processHelloMsg(socket, message);
             return;
         }else if (currentState === 1 && message.type !== 'hello') {
             throw new err.INVALID_HANDSHAKE("Message " + message.type + " before hello message"); 
@@ -150,6 +165,13 @@ export class Agent {
         }
     }
 
+    private private processHelloMsg(socket: net.Socket, message: msg.Message) {
+        this.logger.info(`Processing hello message: ${message.type} from ${socket.remoteAddress}:${socket.remotePort}`);
+        if (message.version !== this.version) {
+            throw new err.MISMATCHED_VERSION("Mismatched version: " + message.version + " != " + this.version);
+        }
+        this.initialingSockets.set(socket, 2);
+    }
 
     private async processMessage(socket: net.Socket, message: msg.Message) {
         if (!this.connectingSockets.has(socket)) {
@@ -160,16 +182,6 @@ export class Agent {
         switch (message.type) {
             case 'getpeers':
                 console.log('Received getpeers message:', message);
-                if (this.initialingSockets.get(socket) === 2) {
-                    this.initialingSockets.delete(socket);
-                    this.connectingSockets.add(socket); // add to connectingSockets
-                    this.processPackets(socket); // process pending packets if any
-                    this.logger.info(`Connected to ${socket.remoteAddress}:${socket.remotePort} Successfully`);
-                }else{
-                    this.logger.error('Received getpeers message from a socket that has not sent hello message');
-                    throw new INVALID_HANDSHAKE("no hello message before getpeers message");
-                }
-
                 const peerMsg = msg.createMessage(
                     "peers", {peers: getPeers()}
                 )

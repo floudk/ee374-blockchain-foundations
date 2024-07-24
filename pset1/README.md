@@ -1,4 +1,0 @@
-- [ ] Version check in hello message
-- [ ] Disconnect in some error cases
-- [ ] Test peers - disconnect - reconnect - getpeer
-- [ ] Test simultaneous connections

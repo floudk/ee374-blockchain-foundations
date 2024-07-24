@@ -19,3 +19,10 @@ export class INVALID_FORMAT extends Error {
         this.name = 'INVALID_FORMAT';
     }
 }
+
+export class MISMATCHED_VERSION extends Error {
+    constructor(type: string) {
+        super(`Mismatched version: ${type}`);
+        this.name = 'MISMATCHED_VERSION';
+    }
+}
